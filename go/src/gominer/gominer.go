@@ -10,6 +10,7 @@ import (
 	"io"
 	"os/exec"
 	"encoding/hex"
+	"io/ioutil"
 	// "strings"
 )
 
@@ -33,6 +34,7 @@ func exists(path string) (bool, error) {
 
 func main() {
 	hasher := sha1.New()
+	public_username := "user-dwj9pqp4"
 	a, b := exists("/Users/bstange/StripeCTF/gominer/level1")
 	if a == true {
 		fmt.Println("level 1 exists")
@@ -43,6 +45,13 @@ func main() {
 		fmt.Printf("Clone Output: %q\n", outString)
 	}
 	os.Chdir("/Users/bstange/StripeCTF/gominer/level1")
+	fmt.Println(shellcmd("git", "reset", "--hard", "HEAD"))
+	ledger, err := ioutil.ReadFile("LEDGER.txt")
+	if err != nil { panic(err) }
+	updatedledger := []byte(fmt.Sprintf("%s%s: 1", ledger, public_username))
+	err = ioutil.WriteFile("LEDGER.txt", updatedledger, 0644)
+	if err != nil { panic(err) }
+	fmt.Println(shellcmd("git", "add", "LEDGER.txt"))
 	tree := fmt.Sprintf("tree %s", shellcmd("git", "write-tree"))
 	difficulty := shellcmd("cat", "difficulty.txt")
 	parent := fmt.Sprintf("parent %s", shellcmd("git", "rev-parse", "HEAD"))
@@ -58,7 +67,7 @@ func main() {
 		io.WriteString(hasher, store)
 		digest := hex.EncodeToString(hasher.Sum(nil))
 		if digest < difficulty {
-			fmt.Println(digest)
+			 fmt.Println(digest, iterator)
 		}
 	}
 }
