@@ -32,8 +32,23 @@ func exists(path string) (bool, error) {
     return false, err
 }
 
-func main() {
+func solve(start int, interval int, tree string, parent string, author string, committer string, difficulty string) {
 	hasher := sha1.New()
+	iterator := start
+	for 1 == 1 {
+		iterator += interval
+		body := fmt.Sprintf("%s%s%s\n%s\nGive me a Gitcoin\n\n%d", tree, parent, author, committer, iterator)
+		store := fmt.Sprintf("commit %d\\0%s", len(body), body)
+		hasher.Reset()
+		io.WriteString(hasher, store)
+		digest := hex.EncodeToString(hasher.Sum(nil))
+		if digest < difficulty {
+			 fmt.Println(digest, iterator)
+		}
+	}
+}
+
+func main() {
 	public_username := "user-dwj9pqp4"
 	a, b := exists("/Users/bstange/StripeCTF/gominer/level1")
 	if a == true {
@@ -58,16 +73,13 @@ func main() {
 	timestamp := shellcmd("date", "+%s")
 	author := fmt.Sprintf("author CTF user <me@example.com> %s +0000", timestamp)
 	committer := fmt.Sprintf("committer CTF user <me@example.com> %s +0000", timestamp)
-	iterator := 0
-	for 1 == 1 {
-		iterator++
-		body := fmt.Sprintf("%s%s%s\n%s\nGive me a Gitcoin\n\n%d", tree, parent, author, committer, iterator)
-		store := fmt.Sprintf("commit %d\\0%s", len(body), body)
-		hasher.Reset()
-		io.WriteString(hasher, store)
-		digest := hex.EncodeToString(hasher.Sum(nil))
-		if digest < difficulty {
-			 fmt.Println(digest, iterator)
-		}
-	}
+
+	go solve(0, 2, tree, parent, author, committer, difficulty)
+	go solve(1, 2, tree, parent, author, committer, difficulty)
+	go solve(-1, -2, tree, parent, author, committer, difficulty)
+	go solve(0, -2, tree, parent, author, committer, difficulty)
+
+	var input string
+	fmt.Scanln(&input)
+	fmt.Println("done")
 }
