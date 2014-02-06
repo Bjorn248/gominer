@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"encoding/hex"
 	"io/ioutil"
+	"strconv"
 )
 
 func shellcmd(name string, arg ...string) string {
@@ -30,52 +31,52 @@ func exists(path string) (bool, error) {
 	return false, err
 }
 
-func solve(start int, interval int, tree string, parent string, author string, committer string, difficulty string) {
+func solve(counter *int, tree string, parent string, author string, committer string, difficulty string) {
 	hasher := sha1.New()
-	iterator := start
 	for 1 == 1 {
-		iterator += interval
-		body := fmt.Sprintf("%s%s%s\n%s\nGive me a Gitcoin\n\n%d", tree, parent, author, committer, iterator)
+		(*counter)++
+		body := fmt.Sprintf("%s%s%s\n%s\nGive me a Gitcoin\n\n%d", tree, parent, author, committer, *counter)
 		store := fmt.Sprintf("commit %d\\0%s", len(body), body)
 		hasher.Reset()
 		io.WriteString(hasher, store)
 		digest := hex.EncodeToString(hasher.Sum(nil))
 		if digest < difficulty {
-			 fmt.Println(digest, iterator)
+			 fmt.Println(digest, *counter)
 		}
 	}
 }
 
 func main() {
 	public_username := "user-dwj9pqp4"
-	a, b := exists("/Users/bstange/StripeCTF/gominer/level1")
+	a, b := exists("/home/ajcrites/projects/personal/gominer/level1")
 	if a == true {
 		fmt.Println("level 1 exists")
 		fmt.Println(b)
 	} else {
 		fmt.Println("can't find level 1, time to clone")
-		outString := shellcmd("git", "clone", "lvl1-d6wr0qcx@stripe-ctf.com:level1", "/Users/bstange/StripeCTF/gominer/level1")
-		fmt.Printf("Clone Output: %q\n", outString)
+		// outString := shellcmd("git", "clone", "lvl1-d6wr0qcx@stripe-ctf.com:level1", "/Users/bstange/StripeCTF/gominer/level1")
+		// fmt.Printf("Clone Output: %q\n", outString)
 	}
-	os.Chdir("/Users/bstange/StripeCTF/gominer/level1")
-	fmt.Println(shellcmd("git", "reset", "--hard", "HEAD"))
+	os.Chdir("/home/ajcrites/projects/personal/gominer/level1")
+	// fmt.Println(shellcmd("git", "reset", "--hard", "HEAD"))
 	ledger, err := ioutil.ReadFile("LEDGER.txt")
 	if err != nil { panic(err) }
 	updatedledger := []byte(fmt.Sprintf("%s%s: 1", ledger, public_username))
 	err = ioutil.WriteFile("LEDGER.txt", updatedledger, 0644)
 	if err != nil { panic(err) }
-	fmt.Println(shellcmd("git", "add", "LEDGER.txt"))
+	// fmt.Println(shellcmd("git", "add", "LEDGER.txt"))
 	tree := fmt.Sprintf("tree %s", shellcmd("git", "write-tree"))
 	difficulty := shellcmd("cat", "difficulty.txt")
 	parent := fmt.Sprintf("parent %s", shellcmd("git", "rev-parse", "HEAD"))
 	timestamp := shellcmd("date", "+%s")
 	author := fmt.Sprintf("author CTF user <me@example.com> %s +0000", timestamp)
 	committer := fmt.Sprintf("committer CTF user <me@example.com> %s +0000", timestamp)
+	counter := 0
 
-	go solve(0, 2, tree, parent, author, committer, difficulty)
-	go solve(1, 2, tree, parent, author, committer, difficulty)
-	go solve(-1, -2, tree, parent, author, committer, difficulty)
-	go solve(0, -2, tree, parent, author, committer, difficulty)
+	maxprocs, err := strconv.Atoi(os.Getenv("GOMAXPROCS"))
+	for x := 0; x < maxprocs; x++ {
+		go solve(&counter, tree, parent, author, committer, difficulty)
+	}
 
 	var input string
 	fmt.Scanln(&input)
