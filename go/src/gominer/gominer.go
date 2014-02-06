@@ -6,12 +6,10 @@ import (
 	"bytes"
 	"log"
 	"os"
-	// "strconv"
 	"io"
 	"os/exec"
 	"encoding/hex"
 	"io/ioutil"
-	// "strings"
 )
 
 func shellcmd(name string, arg ...string) string {
@@ -26,10 +24,10 @@ func shellcmd(name string, arg ...string) string {
 }
 
 func exists(path string) (bool, error) {
-    _, err := os.Stat(path)
-    if err == nil { return true, nil }
-    if os.IsNotExist(err) { return false, nil }
-    return false, err
+	_, err := os.Stat(path)
+	if err == nil { return true, nil }
+	if os.IsNotExist(err) { return false, nil }
+	return false, err
 }
 
 func solve(start int, interval int, tree string, parent string, author string, committer string, difficulty string) {
