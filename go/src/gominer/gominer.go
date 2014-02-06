@@ -11,6 +11,8 @@ import (
 	"encoding/hex"
 	"io/ioutil"
 	"strconv"
+	"sync"
+	"time"
 )
 
 func shellcmd(name string, arg ...string) string {
@@ -74,8 +76,29 @@ func main() {
 	counter := 0
 
 	maxprocs, err := strconv.Atoi(os.Getenv("GOMAXPROCS"))
+	var mutex = &sync.Mutex{}
 	for x := 0; x < maxprocs; x++ {
-		go solve(&counter, tree, parent, author, committer, difficulty)
+go func (counter *int, tree string, parent string, author string, committer string, difficulty string) {
+	hasher := sha1.New()
+	startTime := time.Now()
+	for 1 == 1 {
+		mutex.Lock()
+		(*counter)++
+		current := *counter
+		mutex.Unlock()
+		body := fmt.Sprintf("%s%s%s\n%s\nGive me a Gitcoin\n\n%d", tree, parent, author, committer, current)
+		store := fmt.Sprintf("commit %d\\0%s", len(body), body)
+		hasher.Reset()
+		io.WriteString(hasher, store)
+		digest := hex.EncodeToString(hasher.Sum(nil))
+		if digest < difficulty {
+			fmt.Println(digest, current)
+		}
+		if current == 1000000 || current == 1000001 {
+			fmt.Println(time.Since(startTime), current)
+		}
+	}
+}(&counter, tree, parent, author, committer, difficulty)
 	}
 
 	var input string
