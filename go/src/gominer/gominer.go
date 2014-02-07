@@ -61,7 +61,7 @@ func main() {
 		// outString := shellcmd("git", "clone", "lvl1-d6wr0qcx@stripe-ctf.com:level1", leve1path)
 		// fmt.Printf("Clone Output: %q\n", outString)
 	}
-	os.Chdir("/home/ajcrites/projects/personal/gominer/level1")
+	os.Chdir(leve1path)
 	// fmt.Println(shellcmd("git", "reset", "--hard", "HEAD"))
 	ledger, err := ioutil.ReadFile("LEDGER.txt")
 	if err != nil { panic(err) }
