@@ -51,13 +51,14 @@ func solve(digestCount chan int, tree string, parent string, author string, comm
 
 func main() {
 	public_username := "user-dwj9pqp4"
-	a, b := exists("/home/ajcrites/projects/personal/gominer/level1")
+	leve1path = "/Users/bstange/StripeCTF/gominer/level1"
+	a, b := exists(leve1path)
 	if a == true {
 		fmt.Println("level 1 exists")
 		fmt.Println(b)
 	} else {
 		fmt.Println("can't find level 1, time to clone")
-		// outString := shellcmd("git", "clone", "lvl1-d6wr0qcx@stripe-ctf.com:level1", "/Users/bstange/StripeCTF/gominer/level1")
+		// outString := shellcmd("git", "clone", "lvl1-d6wr0qcx@stripe-ctf.com:level1", leve1path)
 		// fmt.Printf("Clone Output: %q\n", outString)
 	}
 	os.Chdir("/home/ajcrites/projects/personal/gominer/level1")
