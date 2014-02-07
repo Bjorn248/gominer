@@ -78,7 +78,7 @@ func main() {
     count := 0
 
 	for x := 0; x < 4; x++ {
-        digestCount := make(chan int, 1000000)
+        digestCount := make(chan int)
 		go solve(digestCount, tree, parent, author, committer, difficulty, x)
         go func (digestCount chan int) {
             for {
