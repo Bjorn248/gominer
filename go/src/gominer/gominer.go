@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/sha1"
+	// "runtime"
 	"fmt"
 	"bytes"
 	"log"
@@ -10,8 +11,6 @@ import (
 	"os/exec"
 	"encoding/hex"
 	"io/ioutil"
-	"strconv"
-	"sync"
 	"time"
 )
 
@@ -33,18 +32,20 @@ func exists(path string) (bool, error) {
 	return false, err
 }
 
-func solve(counter *int, tree string, parent string, author string, committer string, difficulty string) {
+func solve(digestCount chan int, tree string, parent string, author string, committer string, difficulty string, ident int) {
 	hasher := sha1.New()
-	for 1 == 1 {
-		(*counter)++
-		body := fmt.Sprintf("%s%s%s\n%s\nGive me a Gitcoin\n\n%d", tree, parent, author, committer, *counter)
+	current := 0
+	for {
+		current++
+		body := fmt.Sprintf("%s%s%s\n%s\nGive me a Gitcoin\n\n%d-%d", tree, parent, author, committer, ident, current)
 		store := fmt.Sprintf("commit %d\\0%s", len(body), body)
 		hasher.Reset()
 		io.WriteString(hasher, store)
 		digest := hex.EncodeToString(hasher.Sum(nil))
 		if digest < difficulty {
-			 fmt.Println(digest, *counter)
+			fmt.Println(digest, current)
 		}
+        digestCount <- 1
 	}
 }
 
@@ -73,33 +74,29 @@ func main() {
 	timestamp := shellcmd("date", "+%s")
 	author := fmt.Sprintf("author CTF user <me@example.com> %s +0000", timestamp)
 	committer := fmt.Sprintf("committer CTF user <me@example.com> %s +0000", timestamp)
-	counter := 0
+	var firstTime = time.Now()
+    count := 0
 
-	maxprocs, err := strconv.Atoi(os.Getenv("GOMAXPROCS"))
-	var mutex = &sync.Mutex{}
-	for x := 0; x < maxprocs; x++ {
-go func (counter *int, tree string, parent string, author string, committer string, difficulty string) {
-	hasher := sha1.New()
-	startTime := time.Now()
-	for 1 == 1 {
-		mutex.Lock()
-		(*counter)++
-		current := *counter
-		mutex.Unlock()
-		body := fmt.Sprintf("%s%s%s\n%s\nGive me a Gitcoin\n\n%d", tree, parent, author, committer, current)
-		store := fmt.Sprintf("commit %d\\0%s", len(body), body)
-		hasher.Reset()
-		io.WriteString(hasher, store)
-		digest := hex.EncodeToString(hasher.Sum(nil))
-		if digest < difficulty {
-			fmt.Println(digest, current)
-		}
-		if current == 1000000 || current == 1000001 {
-			fmt.Println(time.Since(startTime), current)
-		}
+	for x := 0; x < 4; x++ {
+        digestCount := make(chan int, 1000000)
+		go solve(digestCount, tree, parent, author, committer, difficulty, x)
+        go func (digestCount chan int) {
+            for {
+                <-digestCount
+                count++
+                //fmt.Println("Hash rate: ", int64(count) / int64(time.Since(firstTime)))
+                if count == 1000000 {
+                    fmt.Println(time.Since(firstTime))
+                }
+            }
+        }(digestCount)
 	}
-}(&counter, tree, parent, author, committer, difficulty)
-	}
+    go func() {
+        for {
+            time.Sleep(1000 * 1000 * 1000)
+            fmt.Println("Hash rate: ", int(count) / (int(time.Since(firstTime)) / 1000 / 1000 / 1000))
+        }
+    }()
 
 	var input string
 	fmt.Scanln(&input)
