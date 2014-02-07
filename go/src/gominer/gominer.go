@@ -43,7 +43,7 @@ func solve(digestCount chan int, tree string, parent string, author string, comm
 		io.WriteString(hasher, store)
 		digest := hex.EncodeToString(hasher.Sum(nil))
 		if digest < difficulty {
-			fmt.Println(digest, current)
+			fmt.Println(digest, current, ident)
 		}
         digestCount <- 1
 	}
