@@ -51,7 +51,7 @@ func solve(digestCount chan int, tree string, parent string, author string, comm
 
 func main() {
 	public_username := "user-dwj9pqp4"
-	leve1path = "/Users/bstange/StripeCTF/gominer/level1"
+	leve1path := "/Users/bstange/StripeCTF/gominer/level1"
 	a, b := exists(leve1path)
 	if a == true {
 		fmt.Println("level 1 exists")
